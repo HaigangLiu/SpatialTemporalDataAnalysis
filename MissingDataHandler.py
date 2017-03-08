@@ -2,13 +2,14 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from netCDF4 import Dataset
 from haversine import haversine
 from functools import partial 
 from scipy.stats import norm
 
-import seaborn
-seaborn.set()
+# this program is designed to handle missing data in covariates
+# the idea is to get the average of its neighbors, which are not equally important.
+# the importance is determined by distances, the kernel function is normal
+# there is no "shutdown" threshold like we do in SST b/c all neighbors in this case are pretty close.
 
 class missingDataHandler(object):
     
@@ -40,6 +41,7 @@ class missingDataHandler(object):
         
         return filled_feature
     
+    # its called df organizer b/c it will return an organized df with all missing data filled.
     def data_frame_organizer(self):
         del self.missing_data[self.feature]
         k = self.missing_data.apply(self.complete_the_missing_feature, axis = 1)
