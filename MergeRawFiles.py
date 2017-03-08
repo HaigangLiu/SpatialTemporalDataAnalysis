@@ -50,7 +50,7 @@ monthly_aggregated = monthly_aggregated.drop(["TMAX","TMIN"], axis = 1)
 #next, find time-variante variables
 # we convert all -9999 into 0 for now, and will handle them with MissingData Handler
 
-# you cannot do them in one shot
+# you cannot do them in one shot like sort_prcp[prcp<0] = np.nan
 # in case tmax is missing and tmin is not, or vice versa
 # that will make the range of temperature look crazy
 
