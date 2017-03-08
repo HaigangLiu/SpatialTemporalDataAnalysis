@@ -7,13 +7,35 @@ from haversine import haversine
 from functools import partial 
 from scipy.stats import norm
 
-import seaborn
-seaborn.set()
-
+# numba is to increase the performance of python
 from numba import autojit
+
+# this program is designed to calculate a covariate based on monthly SST. 
+# for instance, the derived feature for charleston, will be a weighted average of SST of coastal observation locations
+# when a measuring location is too far, we exclude them. The threshhold is 300 miles. This is arbitrary.
+# users can change it anytime by assigining a different value to the keyword radius.
 
 
 class SSTcalculator(object):
+    # step 1
+    # we first apply a mask to determine which location is sea and which is not
+    # the method mask_df_generator() serves this goal
+    
+    # step 2
+    # we then use monthly_sst_df_constructor to create a dataframe for each month
+    # therefore break down a 3D df into a 2D df by taking out timeline factor
+    
+    # step 3
+    # for each month, use what we obtained in step 2 to calculate weighted average 
+    # the average is based on distance, which can be obtained by haversine function
+    
+    # note that haversine function is not compatible with matrix or vector
+    # we have to loop it ourselves.
+    
+    # step 4
+    # we organize each location for step 3 to get a dataframe
+    # only the last method needs to be called when using this class
+    
     def __init__(self, data, radius, start_month, end_month):
 
         data_content = Dataset('/Users/haigangliu/Desktop/data_file_new/sst.mnmean.nc', mode = "r")
@@ -58,8 +80,7 @@ class SSTcalculator(object):
     
     @autojit
     def with_sst_just_sea(self, rec):
-        lon = float(rec.LONGITUDE); 
-        lat = float(rec.LATITUDE)
+        lon = float(rec.LONGITUDE); lat = float(rec.LATITUDE)
         
         df_with_sst_and_mask = self.monthly_sst_df_constructor()
         haversine_for_given_location = partial(haversine, (lat, lon), miles = True)
@@ -69,7 +90,7 @@ class SSTcalculator(object):
         in_range_data = observation_at_sea[observation_at_sea.distance<= self.radius]
         
         scale_param = 0.25*(np.max(in_range_data.distance) - np.min(in_range_data.distance))
-        density = norm.pdf(in_range_data.distance, loc =0, scale = scale_param )
+        density = norm.pdf(in_range_data.distance, loc = 0, scale = scale_param )
         standardized_density  =  density/np.sum(density)
 
         one_loc_container = np.empty(len(self.selected_month_indice))
@@ -77,14 +98,13 @@ class SSTcalculator(object):
         for i in np.arange(1,(1+len(self.selected_month_indice))):
             month = "month %d" %i
             one_loc_container[i-1] = np.sum(standardized_density*in_range_data[month]) 
-            
-            
+                       
         return {"data frame": in_range_data, "size": in_range_data.shape[0], "derived feature": one_loc_container}      
     
 
     def each_locations(self):
         number_of_locs = self.data.shape[0]/(12*self.number_of_years)
-        tokens = [i*12 for i in xrange(number_of_locs)]
+        tokens = [i*12*self.number_of_years for i in xrange(number_of_locs)]
         locations = self.data.iloc[tokens,:]
         container_temp = []
         
@@ -98,6 +118,4 @@ class SSTcalculator(object):
         output["SST"] = np.ravel(np.array(container_temp)) 
         
         return output
-        
-
         
