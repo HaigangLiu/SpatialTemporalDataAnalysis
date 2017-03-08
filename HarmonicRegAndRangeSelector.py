@@ -2,33 +2,37 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+# this program means to clean the data into a nice format so that it can 
+# work with spTimer package in R
+
 # we drop the data if there is only partial records in one year
-# this applies to the whole data set
+# for instance, if March is missing, we delete the record of the whole year
 
 load_data = pd.read_csv("/Users/haigangliu/Dropbox/DataRepository/rain_with_ranged_temp.csv")
 indexed_info = load_data.set_index(["STATION_NAME", "YEAR"])
 filter_ = indexed_info.groupby(level = ["STATION_NAME", "YEAR"])["MONTH"].sum() ==78
 with_complete_year = indexed_info[filter_].reset_index(drop = False)
 
-#cleaning up latitude and longitude
+# cleaning up latitude and longitude
+# we want to make sure there is no contradicting location info for a single location
+# the strategy is we take the first non-missing record, and use this record to overwrite everything else.
 
-#first find unique ones
 index_ = with_complete_year.set_index("STATION_NAME")
 grouped = index_.groupby(level = "STATION_NAME")["LATITUDE", "LONGITUDE"].first()
 grouped = grouped.reset_index(drop = False)
 
-#find how many times to duplicate them
 counts_of_appearances = with_complete_year.STATION_NAME.value_counts()
 counts = counts_of_appearances.sort_index().values
 
-#duplicate
 locs = np.repeat(np.matrix(grouped), counts, axis = 0)
 STATION_INFO = pd.DataFrame(locs, columns = ["STATION_NAME","LATITUDE","LONGITUDE"])
 with_complete_year[["STATION_NAME","LATITUDE","LONGITUDE"]]= STATION_INFO[["STATION_NAME","LATITUDE","LONGITUDE"]]
 
+
 # not only select data within the given range
 # make sure each locations has the same length of record
 # say, if we use 3 years, then each locations must has 36 records
+# for instance, if loc A has two years data, but we want 2010 to 2012 (3 years), then loc A is out.
 
 def dataFilter(data, start, end):
     
@@ -54,7 +58,8 @@ data_of_one_year = dataFilter(with_complete_year,  "2015-01","2015-12")
 
 
 def fillMissing(data):
-# do range selection before this step
+    # the missing data handler is an algorithm to fill missing data based on distance
+    # can be found in the folder as well.
     from MissingDataHandler import missingDataHandler
 
     try:
@@ -71,6 +76,7 @@ def fillMissing(data):
 one_year_fill_missing = fillMissing(data_of_one_year)
 five_year_fill_missing = fillMissing(data_of_five_year)
 
+#use the SST calculator, which can found in this folder too.
 import os
 os.chdir("/Users/haigangliu/PythonCookbook/")
 import SSTCalculator as SST
@@ -82,7 +88,6 @@ five_year_with_sst = SST.SSTcalculator(data_of_five_year, 300, "2011-01","2015-1
 five_year_with_sst = five_year_with_sst.each_locations()
 
 # REMOVE SEASONAL TREND BASED ON HARMONIC REGRESSION
-
 import statsmodels.formula.api as smf
 def regressor(df):
     df = df.reset_index(drop = True)
@@ -104,6 +109,7 @@ a = regression_results["sin"]
 b = regression_results["cos"]
 intercept = regression_results["intercept"]
 
+# this tool is for us to recover precipitation data from rain fall data.
 def recoverTool(df_w_prediction):
     for keyword in ["cos", "sin", "prediction"]:
         if keyword  in df_w_prediction.columns:
@@ -115,7 +121,6 @@ def recoverTool(df_w_prediction):
 
 # DATA OUTPUT
 one_year_after_trend_removed = regression_results["data"]
-
 variables_kept = ["STATION_NAME","YEAR","MONTH", "LATITUDE","LONGITUDE","PRCP","RESIDUAL"]
 variables_kept2 = ["cos", "sin", "SST", "RANGE_HIGH", "RANGE_LOW", "RANGE_OVERALL", "ELEVATION"]
 variables =  variables_kept + variables_kept2
