@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 %matplotlib inline
 
 # this program is designed to merge all the files from NOAA
-# NOAA dataset is daily records, and compress them into monthly data
+# NOAA dataset is daily records, and we need to compress them into monthly data
 # another thing that we do is to calculate the range of temperature 
 # specifically, the range of daily low in a month, the range of daily high in a month
 # and the range of overall (the maxmimum of all - the minimum of all)
@@ -54,11 +54,11 @@ monthly_aggregated = monthly_aggregated.drop(["TMAX","TMIN"], axis = 1)
 # in case tmax is missing and tmin is not, or vice versa
 # that will make the range of temperature look crazy
 
-sort_prcp.TMIN[sort_prcp.TMAX< 0 ] =np.nan
-sort_prcp.TMAX[sort_prcp.TMIN< 0 ] =np.nan
+sort_prcp.TMIN[sort_prcp.TMAX< 0] = np.nan
+sort_prcp.TMAX[sort_prcp.TMIN< 0] = np.nan
 
-sort_prcp.TMAX[sort_prcp.TMAX< 0 ] =np.nan
-sort_prcp.TMIN[sort_prcp.TMIN< 0 ] =np.nan
+sort_prcp.TMAX[sort_prcp.TMAX< 0] = np.nan
+sort_prcp.TMIN[sort_prcp.TMIN< 0] = np.nan
 
 # the roadmap is first convert -9999 into na, and then convert na into 0.
 sort_prcp = sort_prcp.fillna(0)
