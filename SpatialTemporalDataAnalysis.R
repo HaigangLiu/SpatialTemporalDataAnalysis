@@ -29,12 +29,13 @@ training_test_splitter = function(data, chunk_size){
 }
 
 
-dataCleaner  <- function(data_set) {
+dataCleaner = function(data_set) {
   
   # just to rename all the data to be compatible to legacy code 
-  data_set = data_set[c("YEAR", "MONTH","LATITUDE","LONGITUDE","ELEVATION", "PRCP", "STATION_NAME", "RANGE_HIGH", "RANGE_LOW", "RANGE_OVERALL","SST", "RESIDUAL", "cos", "sin")]
-  names(data_set) = c("Year", "Month","Latitude","Longitude","ELEVATION", "PRCP","STATION_NAME","RANGE_HIGH", "RANGE_LOW", "RANGE_OVERALL","SST", "RESIDUAL", "cos", "sin")
-
+  data_set = data_set[c("YEAR", "MONTH","LATITUDE","LONGITUDE","ELEVATION", "PRCP",
+                        "STATION_NAME", "RANGE_HIGH", "RANGE_LOW", "RANGE_OVERALL","SST", "RESIDUAL", "cos", "sin")]
+  names(data_set) = c("Year", "Month","Latitude","Longitude","ELEVATION", "PRCP",
+                      "STATION_NAME","RANGE_HIGH", "RANGE_LOW", "RANGE_OVERALL","SST", "RESIDUAL", "cos", "sin")
   return(data_set)
 }
 
@@ -108,4 +109,4 @@ chunksize = 12
 output_of_2015 = pipeline(Year2015)
 
 chunksize = 60
-output_of_2015 = pipeline(FiveYears)
+output_of_five_years = pipeline(FiveYears)
