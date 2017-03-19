@@ -52,6 +52,9 @@ def file_reader_and_merger(file_name):
     min_high = sorted_data.groupby(level =["STATION_NAME", "YEAR", "MONTH"] )["TMAX"].min()
     max_low = sorted_data.groupby(level =["STATION_NAME", "YEAR", "MONTH"] )["TMIN"].max()
     min_low = sorted_data.groupby(level =["STATION_NAME", "YEAR", "MONTH"] )["TMIN"].min()
+    prcp = sorted_data.groupby(level =["STATION_NAME", "YEAR", "MONTH"] )["PRCP"].max()
+
+
 
     high_range = max_high - min_high
     low_range = max_low - min_low
@@ -64,6 +67,8 @@ def file_reader_and_merger(file_name):
     monthly_aggregated["RANGE_LOW"] = low_range.reset_index(drop = False).iloc[:,-1]
     monthly_aggregated["RANGE_OVERALL"] = overall_range.reset_index(drop = False).iloc[:,-1]
     monthly_aggregated["RANGE_MID"] = mid_range.reset_index(drop = False).iloc[:,-1]
+    monthly_aggregated["PRCP"] = prcp.reset_index(drop = False).iloc[:,-1]
+
     
     return monthly_aggregated
 
